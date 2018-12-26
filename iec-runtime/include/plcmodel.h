@@ -67,8 +67,8 @@ typedef struct{
     uint16_t timer_count;           /* 运行系统中定时器的个数 */
     signalset_t signal_set;         /* 事件任务信号源信息 */
     IValue  *plcglobal;             /* 任务间全局变量指针 */
-    RT_TASK *rt_task;
-    RT_TASK_INFO *rt_info;
+    //RT_TASK *rt_task;
+    //RT_TASK_INFO *rt_info;
     PLCTask *plc_task;
 }TaskList;                          /* 软PLC任务表模型 */
 

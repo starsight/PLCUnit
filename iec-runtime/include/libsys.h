@@ -3,15 +3,15 @@
 
 #include <stdint.h>
 #include "ivalue.h"
-#include "datatrans.h"
+//#include "datatrans.h"
 #include <fstream>
 #include <iostream>
 
 // 为了测试添加的日志
 extern std::ofstream outfile;
 #define MAX_SPOU_NAME_SIZE 50
-extern SVMem    *sv_shm;
-extern RCMem    *rc_shm;
+//extern SVMem    *sv_shm;
+//extern RCMem    *rc_shm;
 
 typedef struct {
     char name[MAX_SPOU_NAME_SIZE];
@@ -137,8 +137,8 @@ void sfun_find(IValue *reg_base);
  */
 inline void sfun_interp_update(IValue *reg_base){
     // printf("plc send message to interp\n");
-    outfile << "[sfun_interp_update]" << std::endl;
-    rc_shm_servo_read(rc_shm, robot_interpdata_buffer);
+    //outfile << "[sfun_interp_update]" << std::endl;
+    //rc_shm_servo_read(rc_shm, robot_interpdata_buffer);
 }
 
 /**
@@ -148,9 +148,9 @@ inline void sfun_interp_update(IValue *reg_base){
  *  返回值: 无
  */
 inline void sfun_servo_input_update(IValue *reg_base){
-    outfile << "[sfun_servo_input_update]" << std::endl;
-    sv_shm_servo2plc(sv_shm, robot_actual_info_buffer);
-    rc_shm_servo_write(rc_shm, robot_actual_info_buffer);
+    //outfile << "[sfun_servo_input_update]" << std::endl;
+    //sv_shm_servo2plc(sv_shm, robot_actual_info_buffer);
+    //rc_shm_servo_write(rc_shm, robot_actual_info_buffer);
 }
 
 /**
@@ -160,9 +160,9 @@ inline void sfun_servo_input_update(IValue *reg_base){
  * 返回值：无
  */
 inline void sfun_servo_output_update(IValue *reg_base){
-     outfile << "[sfun_servo_output_update]" << std::endl;
-    sv_shm_plc2servo(sv_shm, robot_interpdata_buffer);
-    sv_shm->data_status = DATA_NEW;//DATA_OUT_OF_TIME;//
+    // outfile << "[sfun_servo_output_update]" << std::endl;
+    // sv_shm_plc2servo(sv_shm, robot_interpdata_buffer);
+    // sv_shm->data_status = DATA_NEW;//DATA_OUT_OF_TIME;//
 }
 
 /**
@@ -172,9 +172,9 @@ inline void sfun_servo_output_update(IValue *reg_base){
  * 返回值：无
  */
 inline void sfun_rcmode_read(IValue *reg_base){
-    reg_base->v.value_i = SHM_RC_MODE_GET(rc_shm); // 测试时用
-    outfile << "[sfun_rcmode_read]: " << "RC_MODE = " << 
-    (SHM_RC_MODE_GET(rc_shm) == 0 ? "OP_TEACH":"OP_RUN") << std::endl;
+    // reg_base->v.value_i = SHM_RC_MODE_GET(rc_shm); // 测试时用
+    //outfile << "[sfun_rcmode_read]: " << "RC_MODE = " << 
+    // (SHM_RC_MODE_GET(rc_shm) == 0 ? "OP_TEACH":"OP_RUN") << std::endl;
 }
 
 /**
@@ -184,21 +184,21 @@ inline void sfun_rcmode_read(IValue *reg_base){
  * 返回值: 无
  */
 inline void sfun_rc_allow_set(IValue *reg_base){
-    if(reg_base->v.value_i == 0)
-        SHM_PLC_START_CLR(rc_shm);
-    else
-        SHM_PLC_START_SET(rc_shm);
-    reg_base->v.value_i = SHM_PLC_START_GET(rc_shm) && SHM_INTERP_STATUS_GET(rc_shm);
-    outfile << "[sfun_rcplc_servoflag_set]: " << "startup_flag = " << 
-        (unsigned)SHM_INTERP_START_GET(rc_shm) << " interp_status = " << 
-        (unsigned)SHM_INTERP_STATUS_GET(rc_shm) << std::endl;
+    // if(reg_base->v.value_i == 0)
+    //     SHM_PLC_START_CLR(rc_shm);
+    // else
+    //     SHM_PLC_START_SET(rc_shm);
+    // reg_base->v.value_i = SHM_PLC_START_GET(rc_shm) && SHM_INTERP_STATUS_GET(rc_shm);
+    //outfile << "[sfun_rcplc_servoflag_set]: " << "startup_flag = " << 
+    //     (unsigned)SHM_INTERP_START_GET(rc_shm) << " interp_status = " << 
+    //     (unsigned)SHM_INTERP_STATUS_GET(rc_shm) << std::endl;
 
-    // Todo rc_shm->interp_startup_flag
-    if((sv_shm->ctrl_area.ControlWord == 0 || SHM_INTERP_STATUS_GET(rc_shm) == 0)
-        && SHM_INTERP_START_GET(rc_shm) == 1){
-        printf("========== Interpupt interpolation ==========\n");
-        send_cmd_to_interp(2);  // reset interpolator
-    }
+    // // Todo rc_shm->interp_startup_flag
+    // if((sv_shm->ctrl_area.ControlWord == 0 || SHM_INTERP_STATUS_GET(rc_shm) == 0)
+    //     && SHM_INTERP_START_GET(rc_shm) == 1){
+    //     printf("========== Interpupt interpolation ==========\n");
+    //     send_cmd_to_interp(2);  // reset interpolator
+    // }
 }
 
 /**
@@ -208,11 +208,11 @@ inline void sfun_rc_allow_set(IValue *reg_base){
  * 返回值：无
  */
 inline void sfun_servo_poweron(IValue *reg_base){
-    outfile << "[sfun_servo_poweron]" << std::endl;
-    sv_shm->ctrl_area.ControlWord = SERVO_RUN;
-    //reg_base->v.value_i = sv_shm->ctrl_area.PowerOnFlag;
-     reg_base->v.value_i = 1;
-    // printf("伺服启动完成？　%d\n",sv_shm->ctrl_area.PowerOnFlag);
+    //outfile << "[sfun_servo_poweron]" << std::endl;
+    // sv_shm->ctrl_area.ControlWord = SERVO_RUN;
+    // //reg_base->v.value_i = sv_shm->ctrl_area.PowerOnFlag;
+    //  reg_base->v.value_i = 1;
+    // // printf("伺服启动完成？　%d\n",sv_shm->ctrl_area.PowerOnFlag);
 }
 
 /**
@@ -223,10 +223,10 @@ inline void sfun_servo_poweron(IValue *reg_base){
  */
 inline void sfun_servo_poweroff(IValue *reg_base) {
     // TODO
-    outfile << "[sfun_servo_poweroff]" << std::endl;
-    sv_shm->ctrl_area.ControlWord = SERVO_STOP;
-    sv_shm->ctrl_area.PowerOnFlag = POWERED_OFF;
-    // sv_shm->ctrl_area.status_word = 0;   // 需要看一下这个变量有什么用
+    //outfile << "[sfun_servo_poweroff]" << std::endl;
+    // sv_shm->ctrl_area.ControlWord = SERVO_STOP;
+    // sv_shm->ctrl_area.PowerOnFlag = POWERED_OFF;
+    // // sv_shm->ctrl_area.status_word = 0;   // 需要看一下这个变量有什么用
 }
 
 

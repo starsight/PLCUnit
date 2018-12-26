@@ -29,7 +29,7 @@ void sig_handler(int signo){
 int main(int argc, char* argv[]){
 	//mlockall(MCL_CURRENT|MCL_FUTURE);
 
-	outfile.open("c:\\plcloginfo.txt");
+	outfile.open("C:\\Users\\wenjie\\Desktop\\Unit\\plcloginfo.txt");
     outfile << "logfile" << std::endl;
 	if(signal(SIGINT, &sig_handler) == SIG_ERR){
 		LOGGER_ERR(E_SIG_PLCKILL,"");
@@ -37,6 +37,7 @@ int main(int argc, char* argv[]){
 	
 	load_task_list(objname, &plc_task);
 	//plc_task_init(&plc_task);
-	//plc_task_start(&plc_task);
+	plc_task_start(&plc_task);
 	//pause();
+	system("pause");//for log wenjie
 }

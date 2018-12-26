@@ -1,5 +1,5 @@
 #include <string.h>
-#include "istring.h"
+#include "../include/istring.h"
 #include "../../include/syslimit.h"
 #include "../../include/logger.h"
 

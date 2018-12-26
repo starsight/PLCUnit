@@ -1,0 +1,6 @@
+global[0]:3
+global[1]:6
+global[2]:4
+global[3]:5
+global[4]:1
+global[5]:2

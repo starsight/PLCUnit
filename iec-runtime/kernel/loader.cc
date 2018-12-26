@@ -2,7 +2,6 @@
 #include "../include/loader.h"
 #include "../include/sysenv.h"
 #include "../include/istring.h"
-#include "../include/softimer.h"
 #include "../../include/logger.h"
 #include <iostream>
 #include <fstream>
@@ -218,7 +217,7 @@ static int load_plc_task(FILE *fp, PLCTask *task) {
     assert(task != NULL);
     std::ofstream outfile;
     //outfile.open("/home/ychj/wenjie/plc_load_info.txt");
-    outfile.open("C:\\plc_load_info.txt");
+    outfile.open("C:\\Users\\wenjie\\Desktop\\Unit\\plc_load_info.txt");
     verify(load_task_desc(fp, &task->task_desc) < 0, E_LOAD_TASK_DESC, "");
     // 必须在加载常量和全局变量段之前加载，因为常量和全局变量段中可能包含字符串
     verify(sp_init(&task->strpool, task->task_desc.sp_size) < 0, E_SP_INIT, ""); /* MUST initialize before loading constant/global */
@@ -330,16 +329,16 @@ void load_task_list(const char* obj, TaskList *task_list) {
     }
     EOL;
         
-    task_list->rt_task = new RT_TASK[task_list->task_count];
-    task_list->rt_info = new RT_TASK_INFO[task_list->task_count];
+    //task_list->rt_task = new RT_TASK[task_list->task_count];
+    //task_list->rt_info = new RT_TASK_INFO[task_list->task_count];
     task_list->plc_task = new PLCTask[task_list->task_count];
-    verify(task_list->rt_task == NULL || task_list->plc_task == NULL, E_OOM, "loading plc task");
+    //verify(task_list->rt_task == NULL || task_list->plc_task == NULL, E_OOM, "loading plc task");
     LOGGER_DBG(DFLAG_LONG, "PLCList:\n .task_count = %d\n .tasks_global_count = %d\n .timer_count = %d\n ", task_list->task_count, task_list->tasks_global_count, task_list->timer_count);
     for (int i = 0; i < task_list->task_count; i++) {
         printf("task : %d\n", i);
         task_list->plc_task[i].task_index = i;
         if (load_plc_task(fp, &task_list->plc_task[i]) < 0) {
-            delete[] task_list->rt_task;
+            //delete[] task_list->rt_task;
             delete[] task_list->plc_task;
             LOGGER_ERR(E_LOAD_PLC_TASK, "");
         }

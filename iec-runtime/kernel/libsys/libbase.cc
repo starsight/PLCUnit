@@ -1,5 +1,5 @@
 #include <math.h>
-#include "libsys.h"
+#include "../../include/libsys.h"
 
 /* id: system-level pou id */
 #define SPOU_DESC(id)     (spou_desc[id])

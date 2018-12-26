@@ -1,17 +1,16 @@
-#include "vm.h"
-#include "../../include/io.h"
+#include "../include/vm.h"
+//#include "../../include/io.h"
 #include "../../include/logger.h"
 // #include "ivalue.h"
 // #include "opcode.h"
-#include "sysenv.h"
-#include "callstk.h"
-#include "libsys.h"
-#include "softimer.h"
-#include "comanager.h"
-#include <native/timer.h>
+#include "../include/sysenv.h"
+#include "../include/callstk.h"
+#include "../include/libsys.h"
 
 
 extern TaskList plc_task;
+std::ofstream returnGlobalfile;
+
 /* program counter */
 #define PC  (task->pc)
 #define EOC (task->task_desc.inst_count) /* end of code */
@@ -56,6 +55,15 @@ extern TaskList plc_task;
         outfile << "vref_field" <<A.v.value_u<<"-"<<B.v.value_u<<":"<<(task->vref[A.v.value_u].at(B.v.value_u)).v.value_u<<std::endl; \
     else if((task->vref[A.v.value_u].at(B.v.value_u)).type == 3)    \
         outfile << "vref_field" <<A.v.value_u<<"-"<<B.v.value_u<<":"<<(task->vref[A.v.value_u].at(B.v.value_u)).v.value_d<<std::endl; \
+}
+
+#define print_global_info(index,A) { \
+    if(A.type == 1) \
+        returnGlobalfile << "global["<< index <<"]:"<< A.v.value_i <<std::endl; \
+    else if(A.type == 2)    \
+        returnGlobalfile << "global["<< index <<"]:"<< A.v.value_u <<std::endl; \
+    else if(A.type == 3)    \
+        returnGlobalfile << "global["<< index <<"]:"<< A.v.value_d <<std::endl; \
 }
 
 /* calling stack */
@@ -124,38 +132,38 @@ extern TaskList plc_task;
 }
 
 
-#define do_tp(timer_index, timer_instance_index) {                              \
-    if((task->vref[timer_instance_index][4].v.value_u ==0) && (task->vref[timer_instance_index][0].v.value_u != 0)){ \
-        timer_manager.timer_list[timer_index].startflag = true;                 \
-    }                                                                           \
-    if((task->vref[timer_instance_index][0].v.value_u == 0) && timer_manager.timer_list[timer_index].arriveflag == true){  \
-        timer_manager.timer_list[timer_index].startflag = false;                \
-    }                                                                           \
-    timer_manager.timer_list[timer_index].target_count = task->vref[timer_instance_index][2].v.value_u; \
-    task->vref[timer_instance_index][3].v.value_u = timer_manager.timer_list[timer_index].cur_count;    \
-    task->vref[timer_instance_index][1].v.value_u = !timer_manager.timer_list[timer_index].arriveflag;  \
-    task->vref[timer_instance_index][4].v.value_u = task->vref[timer_instance_index][0].v.value_u;      \
-}
-#define do_ton(timer_index, timer_instance_index) {                             \
-    if(task->vref[timer_instance_index][0].v.value_u != 0){                     \
-        timer_manager.timer_list[timer_index].startflag = true;                 \
-    } else {                                                                    \
-        timer_manager.timer_list[timer_index].startflag = false;                \
-    }                                                                           \
-    timer_manager.timer_list[timer_index].target_count = task->vref[timer_instance_index][2].v.value_u; \
-    task->vref[timer_instance_index][3].v.value_u = timer_manager.timer_list[timer_index].cur_count;    \
-    task->vref[timer_instance_index][1].v.value_u = timer_manager.timer_list[timer_index].arriveflag;   \
-}
-#define do_tof(timer_index, timer_instance_index) {                             \
-    if(task->vref[timer_instance_index][0].v.value_u == 0){                     \
-        timer_manager.timer_list[timer_index].startflag = true;                 \
-    } else {                                                                    \
-        timer_manager.timer_list[timer_index].startflag = false;                \
-    }                                                                           \
-    timer_manager.timer_list[timer_index].target_count = task->vref[timer_instance_index][2].v.value_u; \
-    task->vref[timer_instance_index][3].v.value_u = timer_manager.timer_list[timer_index].cur_count;    \
-    task->vref[timer_instance_index][1].v.value_u = !timer_manager.timer_list[timer_index].arriveflag;  \
-}
+// #define do_tp(timer_index, timer_instance_index) {                              \
+//     if((task->vref[timer_instance_index][4].v.value_u ==0) && (task->vref[timer_instance_index][0].v.value_u != 0)){ \
+//         timer_manager.timer_list[timer_index].startflag = true;                 \
+//     }                                                                           \
+//     if((task->vref[timer_instance_index][0].v.value_u == 0) && timer_manager.timer_list[timer_index].arriveflag == true){  \
+//         timer_manager.timer_list[timer_index].startflag = false;                \
+//     }                                                                           \
+//     timer_manager.timer_list[timer_index].target_count = task->vref[timer_instance_index][2].v.value_u; \
+//     task->vref[timer_instance_index][3].v.value_u = timer_manager.timer_list[timer_index].cur_count;    \
+//     task->vref[timer_instance_index][1].v.value_u = !timer_manager.timer_list[timer_index].arriveflag;  \
+//     task->vref[timer_instance_index][4].v.value_u = task->vref[timer_instance_index][0].v.value_u;      \
+// }
+// #define do_ton(timer_index, timer_instance_index) {                             \
+//     if(task->vref[timer_instance_index][0].v.value_u != 0){                     \
+//         timer_manager.timer_list[timer_index].startflag = true;                 \
+//     } else {                                                                    \
+//         timer_manager.timer_list[timer_index].startflag = false;                \
+//     }                                                                           \
+//     timer_manager.timer_list[timer_index].target_count = task->vref[timer_instance_index][2].v.value_u; \
+//     task->vref[timer_instance_index][3].v.value_u = timer_manager.timer_list[timer_index].cur_count;    \
+//     task->vref[timer_instance_index][1].v.value_u = timer_manager.timer_list[timer_index].arriveflag;   \
+// }
+// #define do_tof(timer_index, timer_instance_index) {                             \
+//     if(task->vref[timer_instance_index][0].v.value_u == 0){                     \
+//         timer_manager.timer_list[timer_index].startflag = true;                 \
+//     } else {                                                                    \
+//         timer_manager.timer_list[timer_index].startflag = false;                \
+//     }                                                                           \
+//     timer_manager.timer_list[timer_index].target_count = task->vref[timer_instance_index][2].v.value_u; \
+//     task->vref[timer_instance_index][3].v.value_u = timer_manager.timer_list[timer_index].cur_count;    \
+//     task->vref[timer_instance_index][1].v.value_u = !timer_manager.timer_list[timer_index].arriveflag;  \
+// }
 
 #if LEVEL_DBG <= LOGGER_LEVEL
 #define dump_opcode(i) {fprintf(stderr, "%-6s: ", #i);} // 输出6个字符，不足右边补空格
@@ -307,37 +315,37 @@ extern TaskList plc_task;
 #define dump_tof(a,b)
 #endif
 
-RT_EVENT comm_event_desc;
-RT_HEAP g_ioconf_heap;
-IOConfig *g_ioconf;
-IOMem g_ioshm;
+// RT_EVENT comm_event_desc;
+// RT_HEAP g_ioconf_heap;
+// IOConfig *g_ioconf;
+// IOMem g_ioshm;
 static void executor(void *plc_task_cookie) {
     PLCTask *task = (PLCTask *)plc_task_cookie;
     uint8_t temp_task_type = task->task_desc.type;
     unsigned long signal_wait_mask = 0;
     unsigned long mask_ret;
-    if(temp_task_type == TASK_TYPE_SIGNAL){
-        signal_wait_mask = 1 << task->task_index;
-        rt_event_bind(&comm_event_desc, Event_Flag_Name, TM_INFINITE);
-    } else {
-        rt_task_set_periodic(NULL, TM_NOW, task->task_desc.interval);
-    }
+    // if(temp_task_type == TASK_TYPE_SIGNAL){
+    //     signal_wait_mask = 1 << task->task_index;
+    //     rt_event_bind(&comm_event_desc, Event_Flag_Name, TM_INFINITE);
+    // } else {
+    //     rt_task_set_periodic(NULL, TM_NOW, task->task_desc.interval);
+    // }
     /* 创建VM临时IO数据区 */
-    io_conf_bind(&g_ioconf_heap, &g_ioconf);
-    io_mem_bind(&g_ioshm);
-    IOMem iomem;
-    io_mem_create(&iomem, M_LOCAL);
-    while (1) {
-        if(temp_task_type == 1){
-            rt_event_clear(&comm_event_desc, signal_wait_mask, &mask_ret);
-            rt_event_wait(&comm_event_desc, signal_wait_mask, &mask_ret, EV_ALL, TM_INFINITE);
-        } else {
-            rt_task_wait_period(NULL);
-        }
+    // io_conf_bind(&g_ioconf_heap, &g_ioconf);
+    // io_mem_bind(&g_ioshm);
+    // IOMem iomem;
+    // io_mem_create(&iomem, M_LOCAL);
+    //while (1) {
+        // if(temp_task_type == 1){
+        //     rt_event_clear(&comm_event_desc, signal_wait_mask, &mask_ret);
+        //     rt_event_wait(&comm_event_desc, signal_wait_mask, &mask_ret, EV_ALL, TM_INFINITE);
+        // } else {
+        //     rt_task_wait_period(NULL);
+        // }
         //TODO ADD LOCK!?
-        RTIME start = rt_timer_read();
+        //RTIME start = rt_timer_read();
         /* 将IO映像区数据拷贝到VM临时内存中 */
-        io_mem_cpy(&iomem, &g_ioshm);
+        //io_mem_cpy(&iomem, &g_ioshm);
         for (PC = 0; PC < EOC; ) {
             LOGGER_DBG(DFLAG_SHORT, "instruction[%d] = %0#10x, OpCode = %d", PC, instruction, opcode);
             outfile << "Instruction[" << PC << "] " << "OPcode = " << opcode << std::endl; 
@@ -345,14 +353,11 @@ static void executor(void *plc_task_cookie) {
                 case OP_GLOAD:  R(A) = G(Bx);  dump_imov(GLOAD, <--, G, Bx); PC++; break; /* PC++ MUST be last */
                 case OP_GSTORE: G(Bx) = R(A); dump_imov(GSTORE, -->, G, Bx); PC++; break;
                 case OP_KLOAD:  R(A) = K(Bx); dump_imov(KLOAD, <--, K, Bx); PC++; break;
-                case OP_LDLOAD:  do_ldload(R(A), LDI_CH(B, C)); dump_iio(LDLOAD, <--, LDI); PC++; break;
-                case OP_LDSTORE: do_ldstore(LDO(iomem), B, C, R(A));   dump_iio(LDSTORE, -->, LDO); PC++; break;
-                case OP_LALOAD:  do_laload(R(A), LAI_CH(B, C)); dump_iio(LALOAD, <--, LAI); PC++; break;
-                case OP_LASTORE: do_lastore(LAO(iomem), B, C, R(A));   dump_iio(LASTORE, -->, LAO); PC++; break;
-                // case OP_RDLOAD:  do_rdload(R(A), RDI_CH(B, C)); dump_iio(RDLOAD, <--, RDI); PC++; break;
-                // case OP_RDSTORE: do_rdstore(RDO(iomem), B, C, R(A));   dump_iio(RDSTORE, -->, RDO); PC++; break;
-                // case OP_RALOAD:  do_raload(R(A), RAI_CH(B, C)); dump_iio(RALOAD, <--, RAI); PC++; break;
-                // case OP_RASTORE: do_rastore(RAO(iomem), B, C, R(A));   dump_iio(RASTORE, -->, RAO); PC++; break;
+                // TODO
+                //case OP_LDLOAD:  do_ldload(R(A), LDI_CH(B, C)); dump_iio(LDLOAD, <--, LDI); PC++; break;
+                //case OP_LDSTORE: do_ldstore(LDO(iomem), B, C, R(A));   dump_iio(LDSTORE, -->, LDO); PC++; break;
+                //case OP_LALOAD:  do_laload(R(A), LAI_CH(B, C)); dump_iio(LALOAD, <--, LAI); PC++; break;
+                //case OP_LASTORE: do_lastore(LAO(iomem), B, C, R(A));   dump_iio(LASTORE, -->, LAO); PC++; break;
                 case OP_MOV:    R(A) = R(B); dump_imov(MOV, <--, R, B); PC++; break;
                 case OP_ADD:    vadd(R(A), R(B), R(C)); dump_iarith(ADD, +); PC++; break;
                 case OP_SUB:    vsub(R(A), R(B), R(C)); dump_iarith(SUB, -); PC++; break;
@@ -382,21 +387,31 @@ static void executor(void *plc_task_cookie) {
                 case OP_RET:    dump_ret(); do_ret(A, Bx); break;
                 case OP_GETFIELD: do_getfield(R(A), R(B), R(C)); dump_getfield(); print_vref_info(R(B), R(C)); PC++; break;
                 case OP_SETFIELD: do_setfield(R(A), R(B), R(C)); dump_setfield(); print_vref_info(R(B), R(C)); PC++; break;
-                case OP_TP: dump_tp(A, Bx); do_tp(A, Bx); PC++; break;
-                case OP_TON: dump_ton(A, Bx); do_ton(A, Bx); PC++; break;
-                case OP_TOF: dump_tof(A, Bx); do_tof(A, Bx); PC++; break;
+                // TODO
+                //case OP_TP: dump_tp(A, Bx); do_tp(A, Bx); PC++; break;
+                //case OP_TON: dump_ton(A, Bx); do_ton(A, Bx); PC++; break;
+                //case OP_TOF: dump_tof(A, Bx); do_tof(A, Bx); PC++; break;
                 case OP_PGLOAD: R(A) = PG(Bx);  dump_imov(PGLOAD, <--, PG, Bx); PC++; break;
                 case OP_PGSTORE: PG(Bx) = R(A); dump_imov(PGSTORE, -->, PG, Bx); PC++; break;
                 default: LOGGER_DBG(DFLAG_SHORT, "Unknown OpCode(%d)", opcode); break;
             }
         }
         // EOL;
-        RTIME end = rt_timer_read();
+        //RTIME end = rt_timer_read();
         // fprintf(stderr, "plc_executor_routine: %d ns\n", end - start);
         //TODO ADD LOCK!? /* 将VM临时内存区拷贝到IO映像区 */
-        io_mem_cpy(&g_ioshm, &iomem);
+        //io_mem_cpy(&g_ioshm, &iomem);
+    //}
+
+    int returnCount = task->task_desc.global_count;
+    for(int i =0; i<returnCount;i++){
+        dump_R(i);
+        EOL
+        print_global_info(i,R(i));
     }
 }
+
+
 
 #define TASK_LIST    (task_list)
 #define TASK_COUNT   (TASK_LIST->task_count)
@@ -406,81 +421,87 @@ static void executor(void *plc_task_cookie) {
 
 
 void plc_task_init(TaskList *task_list) {
-    plc_timer_task_init(task_list);
-    plc_comanager_task_init(task_list);
-    for (int i = 0; i < TASK_COUNT; ++i) {
-        if (rt_task_create(&task_list->rt_task[i], TASK_NAME(i), 0, TASK_PRIO(i), 0) < 0) {
-            LOGGER_ERR(E_PLCTASK_CREATE, "(%s)", TASK_NAME(i));
-        }
-    }
+    // plc_timer_task_init(task_list);
+    // plc_comanager_task_init(task_list);
+    // for (int i = 0; i < TASK_COUNT; ++i) {
+    //     if (rt_task_create(&task_list->rt_task[i], TASK_NAME(i), 0, TASK_PRIO(i), 0) < 0) {
+    //         LOGGER_ERR(E_PLCTASK_CREATE, "(%s)", TASK_NAME(i));
+    //     }
+    // }
 }
 void plc_task_start(TaskList *task_list) {
-    plc_timer_task_start(task_list);
-    plc_comanager_task_start(task_list);
+    // plc_timer_task_start(task_list);
+    // plc_comanager_task_start(task_list);
+    // for (int i = 0; i < TASK_COUNT; ++i) {
+    //     printf("task_list\n");
+    //     if (rt_task_start(&task_list->rt_task[i], &executor, (void *)&task_list->plc_task[i]) < 0) {
+    //         LOGGER_ERR(E_PLCTASK_START, "(%s)", TASK_NAME(i));
+    //     }
+    // }
+    returnGlobalfile.open("C:\\Users\\wenjie\\Desktop\\Unit\\return_global_info.txt");
     for (int i = 0; i < TASK_COUNT; ++i) {
-        printf("task_list\n");
-        if (rt_task_start(&task_list->rt_task[i], &executor, (void *)&task_list->plc_task[i]) < 0) {
-            LOGGER_ERR(E_PLCTASK_START, "(%s)", TASK_NAME(i));
-        }
+         printf("task_list\n");
+         executor((void *)&task_list->plc_task[i]); 
     }
+    
 }
 void plc_task_suspend(TaskList *task_list) {
-    for (int i = 0; i < TASK_COUNT; ++i) {
-        if (rt_task_suspend(&task_list->rt_task[i]) < 0) {
-            LOGGER_ERR(E_PLCTASK_SUSP, "(%s)", TASK_NAME(i));
-        }
-    }
+    // for (int i = 0; i < TASK_COUNT; ++i) {
+    //     if (rt_task_suspend(&task_list->rt_task[i]) < 0) {
+    //         LOGGER_ERR(E_PLCTASK_SUSP, "(%s)", TASK_NAME(i));
+    //     }
+    // }
 }
 void plc_task_resume(TaskList *task_list) {
-    for (int i = 0; i < TASK_COUNT; ++i) {
-        if (rt_task_resume(&task_list->rt_task[i]) < 0) {
-            LOGGER_ERR(E_PLCTASK_RESUME, "(%s)", TASK_NAME(i));
-        }
-    }
+    // for (int i = 0; i < TASK_COUNT; ++i) {
+    //     if (rt_task_resume(&task_list->rt_task[i]) < 0) {
+    //         LOGGER_ERR(E_PLCTASK_RESUME, "(%s)", TASK_NAME(i));
+    //     }
+    // }
 }
 void plc_task_delete(TaskList *task_list) {
-    io_mem_unbind(&g_ioshm);
-    io_conf_unbind(&g_ioconf_heap);
-    for (int i = 0; i < TASK_COUNT; ++i) {
-        if (rt_task_delete(&task_list->rt_task[i]) < 0) {
-            LOGGER_ERR(E_PLCTASK_DELETE, "(%s)", TASK_NAME(i));
-        }
-    }
+    // io_mem_unbind(&g_ioshm);
+    // io_conf_unbind(&g_ioconf_heap);
+    // for (int i = 0; i < TASK_COUNT; ++i) {
+    //     if (rt_task_delete(&task_list->rt_task[i]) < 0) {
+    //         LOGGER_ERR(E_PLCTASK_DELETE, "(%s)", TASK_NAME(i));
+    //     }
+    // }
 }
 
 void plc_timer_task_init(TaskList *task_list){
-    timer_manager.timer_count = task_list->timer_count;
+    // timer_manager.timer_count = task_list->timer_count;
 
-    if(task_list->timer_count > 0){
-        int err = 0;
-        err = rt_alarm_create(&alarm_desc,"TickTimer");
-        if(!err){
-            err = rt_task_create(&timer_task_desc, "TimerServer", 4, 96, 0);
-        }
-        if(!err){
-            for(int i = 0; i < task_list->timer_count; i ++){
-                timer_manager.timer_list.push_back({0, 0, false, false});
-            }
-        }
-    }
+    // if(task_list->timer_count > 0){
+    //     int err = 0;
+    //     err = rt_alarm_create(&alarm_desc,"TickTimer");
+    //     if(!err){
+    //         err = rt_task_create(&timer_task_desc, "TimerServer", 4, 96, 0);
+    //     }
+    //     if(!err){
+    //         for(int i = 0; i < task_list->timer_count; i ++){
+    //             timer_manager.timer_list.push_back({0, 0, false, false});
+    //         }
+    //     }
+    // }
 }
 
 void plc_timer_task_start(TaskList *task_list){
-    if(task_list->timer_count > 0){
-        int err = rt_alarm_start(&alarm_desc, 50000, 1000000);
-        if (!err)
-            rt_task_start(&timer_task_desc, &softimer_server, NULL);
-    }
+    // if(task_list->timer_count > 0){
+    //     int err = rt_alarm_start(&alarm_desc, 50000, 1000000);
+    //     if (!err)
+    //         rt_task_start(&timer_task_desc, &softimer_server, NULL);
+    // }
 }
 
 void plc_comanager_task_init(TaskList *task_list){
-    if(task_list->signal_set.count > 0){
-        int err = rt_task_create(&communicate_task_desc, "CommuincateServer", 4, 95, 0);
-    }
+    // if(task_list->signal_set.count > 0){
+    //     int err = rt_task_create(&communicate_task_desc, "CommuincateServer", 4, 95, 0);
+    // }
 }
 
 void plc_comanager_task_start(TaskList *task_list){
-    if(task_list->signal_set.count > 0){
-        int err = rt_task_start(&communicate_task_desc, &communicate_server, NULL);
-    }
+    // if(task_list->signal_set.count > 0){
+    //     int err = rt_task_start(&communicate_task_desc, &communicate_server, NULL);
+    // }
 }
